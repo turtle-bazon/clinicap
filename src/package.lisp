@@ -11,8 +11,10 @@
    
    :ini
    :make-ini
+   :ini-name
    :ini-sections
    :ini-properties
+   :add-ini-section
    :get-ini-section
    :get-ini-property
    :set-ini-property

@@ -9,5 +9,6 @@
   :components ((:module "tests"
 			:components
 			((:file "package")
+			 (:file "test-ini" :depends-on ("package"))
 			 (:file "test-reader" :depends-on ("package"))
 			 (:file "test-writer" :depends-on ("package"))))))
