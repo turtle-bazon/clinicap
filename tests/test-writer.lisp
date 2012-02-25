@@ -6,4 +6,10 @@
 
 (addtest
     test-write-config
-  (ensure-same 1 1))
+  (let ((ini (make-ini :name "ROOT")))
+    (set-ini-property ini '("general" "max-connections") 20)
+    (ensure-same
+     "[general]
+max-connections=20"
+     (with-output-to-string (stream)
+       (write-ini stream ini)))))

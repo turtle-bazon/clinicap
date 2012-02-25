@@ -25,4 +25,4 @@
     (ensure-same 1 (length (ini-sections root-ini)))
     (let ((general-section (first (ini-sections root-ini))))
       (ensure-same 1 (length (ini-properties general-section)))
-      (ensure-same 20 (first (ini-properties general-section))))))
+      (ensure-same 20 (cdr (first (ini-properties general-section)))))))
