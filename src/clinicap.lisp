@@ -70,14 +70,14 @@
 	   (collect char)))
    'string))
 
-(defun parse-line (line)
+(defun parse-ini-line-def (line)
   )
 
 (defun read-ini (stream &optional &key (encoding :utf-8))
-  (loop for line = (read-line stream nil nil)
-       while (not (eq line nil))
-       do (let ((parsed-line (parse-line line)))
-	    fo)))
+  (iter (for line = (read-line stream nil nil))
+	(while (not (eq line nil)))
+	(let ((parsed-line (parse-ini-line-def line)))
+	  line)))
 
 (defun read-ini-file (file-spec &optional &key (encoding :utf-8))
   (with-open-file (stream file-spec
