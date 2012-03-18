@@ -2,6 +2,8 @@
 
 (in-package :ru.bazon.clinicap)
 
+(defparameter *comment-chars* '(#\; #\#))
+
 (define-condition path-not-found (error)
   ((ini :initarg :ini
 	:reader path-not-found-ini
@@ -53,8 +55,29 @@
 	     (set-ini-property (add-ini-section ini section-name) rest-path value)
 	     (set-ini-property section rest-path value))))))
 
-(defun read-ini (stream &optional &key (encoding :utf-8))
+(defun clean-comments (line)
+  (coerce
+   (iter (with state = 'TEXT)
+	 (for char in-string line)
+	 (when (eq char #\")
+	   (if (eq state 'INSTRING)
+	       (setf state 'TEXT)
+	       (setf state 'INSTRING)))
+	 (when (and (find char *comment-chars*)
+		    (not (eq state 'INSTRING)))
+	   (setf state 'COMMENT))
+	 (when (not (eq state 'COMMENT))
+	   (collect char)))
+   'string))
+
+(defun parse-line (line)
   )
+
+(defun read-ini (stream &optional &key (encoding :utf-8))
+  (loop for line = (read-line stream nil nil)
+       while (not (eq line nil))
+       do (let ((parsed-line (parse-line line)))
+	    fo)))
 
 (defun read-ini-file (file-spec &optional &key (encoding :utf-8))
   (with-open-file (stream file-spec

@@ -2,7 +2,8 @@
 
 (defpackage :ru.bazon.clinicap
   (:nicknames :clinicap)
-  (:use :cl)
+  (:use :cl
+	:iterate)
   (:export
    
    :path-not-found

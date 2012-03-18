@@ -6,7 +6,7 @@
   :licence "Lessor Lisp General Public License"
   :version "0.0.1.0"
   :description "Common Lisp INI Composer and Creator"
-  :depends-on ()
+  :depends-on (iterate)
   :components ((:module "src"
 			:components
 			((:file "package")
