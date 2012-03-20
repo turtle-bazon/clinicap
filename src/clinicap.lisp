@@ -70,14 +70,64 @@
 	   (collect char)))
    'string))
 
+(defun string-starts-with (string fragment)
+  (eq 0 (search fragment string)))
+
+(defun string-ends-with (string fragment)
+  (eq (- (length string) (length fragment))
+      (search fragment string :from-end t)))
+
+(defun parse-section (line)
+  (let ((section-name (subseq line 1 (- (length line) 1))))
+    `(:section ,section-name)))
+
+(defun parse-number (string)
+  (let ((dot-index (search "." string)))
+    (if dot-index
+	(let* ((integer-part (parse-integer (subseq string 0 dot-index)))
+	       (real-part-raw (subseq string (+ dot-index 1)))
+	       (real-part (parse-integer real-part-raw))
+	       (real-length (length real-part-raw)))
+	  (coerce
+	   (+ integer-part
+	      (/ real-part
+		 (expt 10 real-length))) 'float))
+	(parse-integer string))))
+
+(defun parse-value (line)
+  (let* ((eq-index (search "=" line))
+	 (name (subseq line 0 eq-index))
+	 (raw-value (subseq line (+ eq-index 1))))
+    `(:property ,name ,(if (and (string-starts-with raw-value "\"")
+				(string-ends-with raw-value "\""))
+			   (subseq raw-value 1 (- (length raw-value) 1))
+			   (parse-number raw-value)))))
+
 (defun parse-ini-line-def (line)
-  )
+  (let ((clean-line (string-trim " " (clean-comments line))))
+    (cond
+      ((equal clean-line "") nil)
+      ((and (eq #\[ (aref clean-line 0))
+	    (eq #\] (aref clean-line (- (length clean-line) 1))))
+       (parse-section clean-line))
+      ((find #\= clean-line) (parse-value clean-line))
+      (t (error "Unrecognized line: ~a" line)))))
 
 (defun read-ini (stream &optional &key (encoding :utf-8))
-  (iter (for line = (read-line stream nil nil))
-	(while (not (eq line nil)))
-	(let ((parsed-line (parse-ini-line-def line)))
-	  line)))
+  (let ((root-ini (make-ini :name "ROOT")))
+    (iter (with ini = root-ini)
+	  (for line = (read-line stream nil nil))
+	  (while (not (eq line nil)))
+	  (let ((parsed-line (parse-ini-line-def line)))
+	    (when parsed-line
+	      (ecase (first parsed-line)
+		(:section (setf ini
+				(add-ini-section root-ini
+						 (second parsed-line))))
+		(:property (set-ini-property ini
+					     `(,(second parsed-line))
+					     (third parsed-line)))))))
+    root-ini))
 
 (defun read-ini-file (file-spec &optional &key (encoding :utf-8))
   (with-open-file (stream file-spec
