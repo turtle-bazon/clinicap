@@ -32,7 +32,8 @@
 
 (defun add-ini-section (ini name)
   (let ((new-section (make-ini :name name)))
-    (push new-section (ini-sections ini))
+    (setf (ini-sections ini)
+	  (reverse (cons new-section (ini-sections ini))))
     new-section))
 
 (defun get-ini-property (ini path)
@@ -136,15 +137,14 @@
     (read-ini stream :encoding encoding)))
 
 (defun write-ini (stream ini &optional &key (encoding :utf-8))
-  (dolist (property (reverse (ini-properties ini)) t)
-    (destructuring-bind (key . value)
-	property
-      (format stream "~a=~:[~a~;\"~a\"~]~%" key (stringp value) value)))
-  (when (ini-properties ini)
-      (format stream "~%"))
-  (dolist (section (reverse (ini-sections ini)))
-    (format stream "[~a]~%" (ini-name section))
-    (write-ini stream section)))
+  (iter (for (key . value) in (reverse (ini-properties ini)))
+	(format stream "~a=~:[~a~;\"~a\"~]~%" key (stringp value) value))
+  (when (or (not (equal (ini-name ini) "ROOT"))
+	    (ini-properties ini))
+    (format stream "~%"))
+  (iter (for section in (ini-sections ini))
+	(format stream "[~a]~%" (ini-name section))
+	(write-ini stream section)))
 
 (defun write-ini-file (file-spec ini &optional &key (encoding :utf-8))
   (with-open-file (stream file-spec
