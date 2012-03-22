@@ -114,7 +114,7 @@
       ((find #\= clean-line) (parse-value clean-line))
       (t (error "Unrecognized line: ~a" line)))))
 
-(defun read-ini (stream &optional &key (encoding :utf-8))
+(defun read-ini (stream)
   (let ((root-ini (make-ini :name "ROOT")))
     (iter (with ini = root-ini)
 	  (for line = (read-line stream nil nil))
@@ -133,10 +133,11 @@
 (defun read-ini-file (file-spec &optional &key (encoding :utf-8))
   (with-open-file (stream file-spec
 			  :direction :input
-			  :element-type 'character)
-    (read-ini stream :encoding encoding)))
+			  :element-type 'character
+			  :external-format encoding)
+    (read-ini stream)))
 
-(defun write-ini (stream ini &optional &key (encoding :utf-8))
+(defun write-ini (stream ini)
   (iter (for (key . value) in (reverse (ini-properties ini)))
 	(format stream "~a=~:[~a~;\"~a\"~]~%" key (stringp value) value))
   (when (or (not (equal (ini-name ini) "ROOT"))
@@ -150,6 +151,7 @@
   (with-open-file (stream file-spec
 			  :direction :output
 			  :element-type 'character
+			  :external-format encoding
 			  :if-exists :supersede
 			  :if-does-not-exist :create)
-    (write-ini stream ini :encoding encoding)))
+    (write-ini stream ini)))
