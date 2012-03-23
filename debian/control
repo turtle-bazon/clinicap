@@ -1,0 +1,19 @@
+Source: clinicap
+Section: universe/devel
+Priority: optional
+Maintainer: Azamat S. Kalimoulline <turtle@bazon.ru>
+Build-Depends-Indep: dh-lisp
+Build-Depends: debhelper (>= 7.0.0)
+Standards-Version: 3.8.2.0
+Homepage: http://developer.bazon.ru/projects/debian-lisp/wiki/clinicap/
+
+Package: clinicap
+Architecture: all
+Depends: iterate
+Description: clinicap is a dialect of ini file parser and writer, implemented in CommonLisp.
+
+Package: clinicap-tests
+Architecture: all
+Depends: clinicap (= ${source:Version}), lift, iterate
+Description: clinicap is a dialect of ini file parser and writer, implemented in CommonLisp.
+
