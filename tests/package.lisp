@@ -28,6 +28,7 @@
 					 (testsuite-tests test-name)
 					 (errors test-suite-results)
 					 (failures test-suite-results)))))))
+    (format t "~%")
     (destructuring-bind (tests-run tests-error tests-failed)
 	(reduce
 	 #'(lambda (x y)
