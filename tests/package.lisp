@@ -43,6 +43,6 @@
 	    (describe-test-result test-result t))
       (format t "~%Test Report for all tests: ~a All, ~a!"
 	      tests-run
-	      (if (> tests-failed 0)
+	      (if (or (> tests-failed 0) (> tests-error 0))
 		  (format nil "~a Errors, ~a Failure" tests-error tests-failed)
 		  "all passed")))))
