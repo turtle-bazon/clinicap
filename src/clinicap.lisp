@@ -71,6 +71,10 @@
 	   (collect char)))
    'string))
 
+(defun string-starts-with-digit (string)
+  (let ((first-char (aref string 0)))
+    (and (char>= first-char #\0) (char<= first-char #\9))))
+
 (defun string-starts-with (string fragment)
   (eq 0 (search fragment string)))
 
@@ -84,28 +88,34 @@
 
 (defun parse-number (string)
   (let ((dot-index (search "." string)))
-    (if dot-index
-	(let* ((integer-part (parse-integer (subseq string 0 dot-index)))
-	       (real-part-raw (subseq string (+ dot-index 1)))
-	       (real-part (parse-integer real-part-raw))
-	       (real-length (length real-part-raw)))
-	  (coerce
-	   (+ integer-part
-	      (/ real-part
-		 (expt 10 real-length))) 'float))
-	(parse-integer string))))
+    (cond (dot-index
+           (let* ((integer-part (parse-integer (subseq string 0 dot-index)))
+                  (real-part-raw (subseq string (+ dot-index 1)))
+                  (real-part (parse-integer real-part-raw))
+                  (real-length (length real-part-raw)))
+             (coerce
+              (+ integer-part
+                 (/ real-part
+                    (expt 10 real-length))) 'float)))
+          ((string-starts-with string "0x")
+           (parse-integer string :start 2 :radix 16))
+          ((string-starts-with string "0")
+           (parse-integer string :start 1 :radix 8))
+          (t (parse-integer string)))))
 
 (defun parse-value (line)
   (let* ((eq-index (search "=" line))
-	 (name (subseq line 0 eq-index))
-	 (raw-value (subseq line (+ eq-index 1))))
-    `(:property ,name ,(if (and (string-starts-with raw-value "\"")
-				(string-ends-with raw-value "\""))
-			   (subseq raw-value 1 (- (length raw-value) 1))
-			   (parse-number raw-value)))))
+         (name (string-trim (list #\space #\tab) (subseq line 0 eq-index)))
+         (raw-value (string-trim (list #\space #\tab) (subseq line (+ eq-index 1)))))
+    `(:property ,name ,(cond ((and (string-starts-with raw-value "\"")
+                                   (string-ends-with raw-value "\""))
+                              (subseq raw-value 1 (- (length raw-value) 1)))
+                             ((string-starts-with-digit raw-value)
+                              (parse-number raw-value))
+                             (t (intern raw-value))))))
 
 (defun parse-ini-line-def (line)
-  (let ((clean-line (string-trim " " (clean-comments line))))
+  (let ((clean-line (string-trim (list #\space #\return #\tab) (clean-comments line))))
     (cond
       ((equal clean-line "") nil)
       ((and (eq #\[ (aref clean-line 0))
